@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elamite Keyboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0f0f;
+      color: #eee;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      font-size: 2rem;
+      color: #ffd700;
+    }
+
+    #modeToggle, #printBtn {
+      margin: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #output {
+      font-size: 2rem;
+      background: #1c1c1c;
+      border: 2px solid #333;
+      border-radius: 8px;
+      padding: 1rem;
+      min-height: 100px;
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 700px;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    #keyboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 10px;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .key {
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #222;
+      color: #fff;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .key:hover {
+      background-color: #333;
+    }
+
+    .note {
+      margin-top: 3rem;
+      background: #1a1a1a;
+      padding: 1rem;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 700px;
+      font-size: 1rem;
+      color: #bbb;
+      white-space: pre-wrap;
+    }
+
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      body *:not(#printableContent) {
+        display: none !important;
+      }
+      #printableContent {
+        display: block;
+        color: #000;
+        background: #fff;
+        padding: 2rem;
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Elamite Keyboard</h1>
+  <div>
+    <button id="modeToggle">Switch to English Mode</button>
+    <button id="printBtn">🖨️ Print</button>
+  </div>
+  <div id="output" contenteditable="true"></div>
+  <div id="keyboard"></div>
+
+  <div class="note">
+    <strong>Elamite A–Z Chart:</strong>
+    A = 𒀀, B = 𒁀, C = 𒆠, D = 𒁲, E = 𒂊, F = 𒈬, G = 𒐖, H = 𒄩
+    I = 𒅖, J = 𒃻, K = 𒅗, L = 𒇻, M = 𒈠, N = 𒉡, O = 𒍥, P = 𒉺
+    Q = 𒆤, R = 𒊑, S = 𒊬, T = 𒋾, U = 𒌋, V = 𒅆, W = 𒉿, X = 𒐊
+    Y = 𒅀, Z = 𒊻
+    (Single space = | , Sentence break = ||)
+  </div>
+
+  <div id="printableContent" style="display: none; white-space: pre-wrap;"></div>
+
+  <script>
+    const cipher = {
+      A: "𒀀", B: "𒁀", C: "𒆠", D: "𒁲", E: "𒂊", F: "𒈬", G: "𒐖", H: "𒄩",
+      I: "𒅖", J: "𒃻", K: "𒅗", L: "𒇻", M: "𒈠", N: "𒉡", O: "𒍥", P: "𒉺",
+      Q: "𒆤", R: "𒊑", S: "𒊬", T: "𒋾", U: "𒌋", V: "𒅆", W: "𒉿", X: "𒐊",
+      Y: "𒅀", Z: "𒊻", " ": " | "
+    };
+
+    let elamiteMode = true;
+
+    const output = document.getElementById("output");
+    const keyboard = document.getElementById("keyboard");
+    const modeToggle = document.getElementById("modeToggle");
+    const printBtn = document.getElementById("printBtn");
+    const printableContent = document.getElementById("printableContent");
+
+    function updateKeyboard() {
+      keyboard.innerHTML = "";
+      const keys = elamiteMode ? Object.keys(cipher) : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ '.split("");
+      keys.forEach(letter => {
+        const btn = document.createElement("button");
+        btn.className = "key";
+        btn.innerHTML = `${letter}<br><span style="font-size:1.4rem">${elamiteMode ? cipher[letter] : letter}</span>`;
+        btn.onclick = () => output.innerText += elamiteMode ? cipher[letter] : letter;
+        keyboard.appendChild(btn);
+      });
+
+      const spaceBtn = document.createElement("button");
+      spaceBtn.className = "key";
+      spaceBtn.innerText = "| (space)";
+      spaceBtn.onclick = () => output.innerText += " | ";
+      keyboard.appendChild(spaceBtn);
+
+      const breakBtn = document.createElement("button");
+      breakBtn.className = "key";
+      breakBtn.innerText = "|| (break)";
+      breakBtn.onclick = () => output.innerText += " || ";
+      keyboard.appendChild(breakBtn);
+
+      const clearBtn = document.createElement("button");
+      clearBtn.className = "key";
+      clearBtn.innerText = "⌫ Clear";
+      clearBtn.onclick = () => {
+        output.innerText = output.innerText.slice(0, -1);
+      };
+      keyboard.appendChild(clearBtn);
+    }
+
+    modeToggle.onclick = () => {
+      elamiteMode = !elamiteMode;
+      modeToggle.innerText = elamiteMode ? "Switch to English Mode" : "Switch to Elamite Mode";
+      updateKeyboard();
+    };
+
+    printBtn.onclick = () => {
+      printableContent.innerText = output.innerText;
+      printableContent.style.display = 'block';
+      window.print();
+      printableContent.style.display = 'none';
+    };
+
+    document.addEventListener("keydown", e => {
+      const key = e.key.toUpperCase();
+      if (key.length === 1 && /[A-Z ]/.test(key)) {
+        e.preventDefault();
+        output.innerText += elamiteMode ? (cipher[key] || "") : key;
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        output.innerText += " || ";
+      } else if (e.key === "Backspace") {
+        e.preventDefault();
+        output.innerText = output.innerText.slice(0, -1);
+      }
+    });
+
+    updateKeyboard();
+  </script>
+
+</body>
+</html>
