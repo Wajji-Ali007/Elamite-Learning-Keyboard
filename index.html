@@ -6,12 +6,12 @@
   <title>Elamite Keyboard</title>
   <style>
     :root {
-      --bg-color-light: rgba(255, 0, 0, 0.08);
-      --bg-color-dark: rgba(150, 0, 0, 0.15);
-      --key-color-light: rgba(255, 255, 255, 0.5);
-      --key-color-dark: rgba(255, 255, 255, 0.1);
+      --bg-color-light: rgba(255, 100, 100, 0.1);
+      --bg-color-dark: rgba(180, 0, 0, 0.2);
+      --key-color-light: rgba(255, 255, 255, 0.6);
+      --key-color-dark: rgba(255, 255, 255, 0.15);
       --key-text: #fff;
-      --shadow-dark: rgba(200, 0, 0, 0.4);
+      --shadow-dark: rgba(255, 0, 0, 0.4);
       --shadow-light: rgba(255, 0, 0, 0.2);
     }
 
@@ -37,18 +37,16 @@
       margin-bottom: 1rem;
       font-size: 2.5rem;
       text-align: center;
-      font-weight: bold;
-      background: linear-gradient(90deg, #ff4d4d, #ffffff, #ff4d4d);
-      background-size: 300% auto;
-      color: transparent;
-      background-clip: text;
+      background: linear-gradient(90deg, #ff6666, #fff);
       -webkit-background-clip: text;
-      animation: shine 4s infinite linear;
+      -webkit-text-fill-color: transparent;
+      animation: shine 2s infinite linear;
     }
 
     @keyframes shine {
-      0% { background-position: 0% center; }
-      100% { background-position: 300% center; }
+      0% { text-shadow: 0 0 5px #fff; }
+      50% { text-shadow: 0 0 20px #ffaaaa; }
+      100% { text-shadow: 0 0 5px #fff; }
     }
 
     #output {
@@ -63,6 +61,13 @@
       max-width: 700px;
       word-wrap: break-word;
       white-space: pre-wrap;
+      color: #000;
+      background-color: #fff;
+    }
+
+    body:not(.light) #output {
+      color: #000;
+      background-color: #fff;
     }
 
     .control-buttons {
@@ -81,7 +86,7 @@
       cursor: pointer;
       background: rgba(255,255,255,0.1);
       color: #fff;
-      transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+      transition: background 0.3s, transform 0.2s;
     }
 
     body.light button {
@@ -93,7 +98,6 @@
     button:hover {
       background: #ff6666;
       color: #fff;
-      box-shadow: 0 0 10px #ff6666;
     }
 
     button:active {
@@ -118,7 +122,7 @@
       cursor: pointer;
       text-align: center;
       font-weight: bold;
-      transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+      transition: transform 0.2s, background 0.3s;
     }
 
     body.light .key {
@@ -128,7 +132,6 @@
 
     .key:hover {
       background-color: #ffaaaa;
-      box-shadow: 0 0 10px #ffaaaa;
     }
 
     .key span {
@@ -174,11 +177,12 @@
     <button onclick="switchLanguage('mix')">Roman + Elamite</button>
     <button onclick="switchLanguage('elamite')">Elamite</button>
     <button onclick="toggleTheme()">🌗 Theme</button>
+    <button onclick="clearOutput()">🗑️ Clear</button>
     <button onclick="printOutput()">🖨️ Print</button>
   </div>
   <div id="keyboard"></div>
   <div class="note">
-    Type your Roman Urdu or Elamite script using the virtual keyboard.
+    Type your Roman Urdu or Elamite script using the virtual keyboard or your physical keyboard. Use <code>Space</code> for | and <code>Enter</code> for ||
   </div>
 
   <script>
@@ -223,6 +227,10 @@
       createKeyboard();
     }
 
+    function clearOutput() {
+      output.textContent = '';
+    }
+
     function printOutput() {
       const win = window.open('', '', 'width=800,height=600');
       win.document.write(`<pre id="printableContent">${output.textContent}</pre>`);
@@ -232,6 +240,24 @@
     function toggleTheme() {
       document.body.classList.toggle('light');
     }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key.length === 1 && /[a-z]/i.test(e.key)) {
+        const char = e.key.toLowerCase();
+        const value =
+          currentLanguage === 'roman' ? char :
+          currentLanguage === 'mix' ? `${char}(${elamiteMap[char]})` :
+          elamiteMap[char];
+        output.textContent += value + ' ';
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        output.textContent += '|';
+      } else if (e.key === 'Enter') {
+        output.textContent += '||\n';
+      } else if (e.key === 'Backspace') {
+        output.textContent = output.textContent.trimEnd().slice(0, -1);
+      }
+    });
 
     createKeyboard();
   </script>
