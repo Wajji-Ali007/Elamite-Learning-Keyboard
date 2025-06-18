@@ -1,45 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Elamite Keyboard</title>
   <style>
+    :root {
+      --bg-color-light: rgba(255, 0, 0, 0.08);
+      --bg-color-dark: rgba(150, 0, 0, 0.15);
+      --key-color-light: rgba(255, 255, 255, 0.5);
+      --key-color-dark: rgba(255, 255, 255, 0.1);
+      --key-text: #fff;
+      --shadow-dark: rgba(200, 0, 0, 0.4);
+      --shadow-light: rgba(255, 0, 0, 0.2);
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f0f0f;
-      color: #eee;
       margin: 0;
       padding: 2rem;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-color-dark);
+      color: var(--key-text);
+      transition: background 0.5s ease;
       display: flex;
       flex-direction: column;
       align-items: center;
+      min-height: 100vh;
+    }
+
+    body.light {
+      background: var(--bg-color-light);
+      color: #000;
     }
 
     h1 {
       margin-bottom: 1rem;
-      font-size: 2rem;
-      color: #ffd700;
+      font-size: 2.5rem;
+      text-align: center;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ff4d4d, #ffffff, #ff4d4d);
+      background-size: 300% auto;
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+      animation: shine 4s infinite linear;
     }
 
-    .modeBtn, #printBtn {
-      margin: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: #333;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .modeBtn.active {
-      background: #555;
+    @keyframes shine {
+      0% { background-position: 0% center; }
+      100% { background-position: 300% center; }
     }
 
     #output {
       font-size: 2rem;
-      background: #1c1c1c;
-      border: 2px solid #333;
+      background: var(--key-color-dark);
+      border: 2px solid #ffaaaa;
       border-radius: 8px;
       padding: 1rem;
       min-height: 100px;
@@ -48,6 +63,41 @@
       max-width: 700px;
       word-wrap: break-word;
       white-space: pre-wrap;
+    }
+
+    .control-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      padding: 0.6rem 1rem;
+      font-size: 1rem;
+      border: 2px solid #ff6666;
+      border-radius: 6px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    }
+
+    body.light button {
+      color: #000;
+      background: rgba(255,255,255,0.5);
+      border-color: #ffaaaa;
+    }
+
+    button:hover {
+      background: #ff6666;
+      color: #fff;
+      box-shadow: 0 0 10px #ff6666;
+    }
+
+    button:active {
+      transform: scale(0.95);
     }
 
     #keyboard {
@@ -60,29 +110,42 @@
 
     .key {
       padding: 10px;
-      font-size: 1rem;
+      font-size: 1.2rem;
       border: none;
       border-radius: 6px;
-      background-color: #222;
-      color: #fff;
+      background-color: var(--key-color-dark);
+      color: var(--key-text);
       cursor: pointer;
       text-align: center;
+      font-weight: bold;
+      transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+    }
+
+    body.light .key {
+      background-color: var(--key-color-light);
+      color: #000;
     }
 
     .key:hover {
-      background-color: #333;
+      background-color: #ffaaaa;
+      box-shadow: 0 0 10px #ffaaaa;
+    }
+
+    .key span {
+      display: block;
+      font-size: 1.6rem;
+      color: #ff6666;
     }
 
     .note {
       margin-top: 3rem;
-      background: #1a1a1a;
+      background: rgba(255,0,0,0.03);
       padding: 1rem;
       border-radius: 8px;
       width: 100%;
       max-width: 700px;
       font-size: 1rem;
-      color: #bbb;
-      white-space: pre-wrap;
+      color: #333;
     }
 
     @media print {
@@ -104,129 +167,73 @@
   </style>
 </head>
 <body>
-
   <h1>Elamite Keyboard</h1>
-  <div>
-    <button class="modeBtn active" data-mode="mix">Mix</button>
-    <button class="modeBtn" data-mode="roman">Roman</button>
-    <button class="modeBtn" data-mode="elamite">Elamite</button>
-    <button id="printBtn">🖨️ Print</button>
+  <div id="output"></div>
+  <div class="control-buttons">
+    <button onclick="switchLanguage('roman')">Roman</button>
+    <button onclick="switchLanguage('mix')">Roman + Elamite</button>
+    <button onclick="switchLanguage('elamite')">Elamite</button>
+    <button onclick="toggleTheme()">🌗 Theme</button>
+    <button onclick="printOutput()">🖨️ Print</button>
   </div>
-  <div id="output" contenteditable="true"></div>
   <div id="keyboard"></div>
-
   <div class="note">
-    <strong>Elamite A–Z Chart:</strong>
-    A = 𒀀, B = 𒁀, C = 𒆠, D = 𒁲, E = 𒂊, F = 𒈬, G = 𒐖, H = 𒄩
-    I = 𒅖, J = 𒃻, K = 𒅗, L = 𒇻, M = 𒈠, N = 𒉡, O = 𒍥, P = 𒉺
-    Q = 𒆤, R = 𒊑, S = 𒊬, T = 𒋾, U = 𒌋, V = 𒅆, W = 𒉿, X = 𒐊
-    Y = 𒅀, Z = 𒊻
-    (Single space = | , Sentence break = ||)
+    Type your Roman Urdu or Elamite script using the virtual keyboard.
   </div>
-
-  <div id="printableContent" style="display: none; white-space: pre-wrap;"></div>
 
   <script>
-    const cipher = {
-      A: "𒀀", B: "𒁀", C: "𒆠", D: "𒁲", E: "𒂊", F: "𒈬", G: "𒐖", H: "𒄩",
-      I: "𒅖", J: "𒃻", K: "𒅗", L: "𒇻", M: "𒈠", N: "𒉡", O: "𒍥", P: "𒉺",
-      Q: "𒆤", R: "𒊑", S: "𒊬", T: "𒋾", U: "𒌋", V: "𒅆", W: "𒉿", X: "𒐊",
-      Y: "𒅀", Z: "𒊻", " ": " | "
+    const elamiteMap = {
+      a: '𒀀', b: '𒁀', c: '𒆠', d: '𒁲', e: '𒂊', f: '𒈬', g: '𒐖', h: '𒄩', i: '𒅖', j: '𒃻',
+      k: '𒅗', l: '𒇻', m: '𒈠', n: '𒉡', o: '𒍥', p: '𒉺', q: '𒆤', r: '𒊑', s: '𒊬', t: '𒋾',
+      u: '𒌋', v: '𒅆', w: '𒉿', x: '𒐊', y: '𒅀', z: '𒊻'
     };
 
-    let mode = "mix";
+    let currentLanguage = 'roman';
 
-    const output = document.getElementById("output");
-    const keyboard = document.getElementById("keyboard");
-    const printBtn = document.getElementById("printBtn");
-    const printableContent = document.getElementById("printableContent");
-    const modeButtons = document.querySelectorAll(".modeBtn");
+    const output = document.getElementById('output');
+    const keyboard = document.getElementById('keyboard');
+    const letters = 'abcdefghijklmnopqrstuvwxyz';
 
-    modeButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        mode = btn.dataset.mode;
-        modeButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        updateKeyboard();
-      });
-    });
-
-    function updateKeyboard() {
-      keyboard.innerHTML = "";
-      let keys = Object.keys(cipher);
-
-      keys.forEach(letter => {
-        const btn = document.createElement("button");
-        btn.className = "key";
-
-        let display = "";
-        if (mode === "roman") {
-          display = letter;
-        } else if (mode === "mix") {
-          display = `${letter}<br><span style="font-size:1.4rem">${cipher[letter]}</span>`;
-        } else if (mode === "elamite") {
-          display = `<span style="font-size:1.4rem">${cipher[letter]}</span>`;
+    function createKeyboard() {
+      keyboard.innerHTML = '';
+      for (let char of letters) {
+        const key = document.createElement('button');
+        key.className = 'key';
+        let label = char;
+        if (currentLanguage === 'mix') {
+          key.innerHTML = `<span>${elamiteMap[char]}</span>${char}`;
+        } else if (currentLanguage === 'elamite') {
+          key.innerHTML = `<span>${elamiteMap[char]}</span>`;
+        } else {
+          key.innerHTML = `<span>${char}</span>`;
         }
-
-        btn.innerHTML = display;
-        btn.onclick = () => {
-          if (mode === "roman") {
-            output.innerText += letter;
-          } else {
-            output.innerText += cipher[letter] || "";
-          }
+        key.onclick = () => {
+          const value =
+            currentLanguage === 'roman' ? char :
+            currentLanguage === 'mix' ? `${char}(${elamiteMap[char]})` :
+            elamiteMap[char];
+          output.textContent += value + ' ';
         };
-        keyboard.appendChild(btn);
-      });
-
-      const spaceBtn = document.createElement("button");
-      spaceBtn.className = "key";
-      spaceBtn.innerText = "| (space)";
-      spaceBtn.onclick = () => output.innerText += " | ";
-      keyboard.appendChild(spaceBtn);
-
-      const breakBtn = document.createElement("button");
-      breakBtn.className = "key";
-      breakBtn.innerText = "|| (break)";
-      breakBtn.onclick = () => output.innerText += " || ";
-      keyboard.appendChild(breakBtn);
-
-      const clearBtn = document.createElement("button");
-      clearBtn.className = "key";
-      clearBtn.innerText = "⌫ Clear";
-      clearBtn.onclick = () => {
-        output.innerText = output.innerText.slice(0, -1);
-      };
-      keyboard.appendChild(clearBtn);
+        keyboard.appendChild(key);
+      }
     }
 
-    printBtn.onclick = () => {
-      printableContent.innerText = output.innerText;
-      printableContent.style.display = 'block';
-      window.print();
-      printableContent.style.display = 'none';
-    };
+    function switchLanguage(lang) {
+      currentLanguage = lang;
+      createKeyboard();
+    }
 
-    document.addEventListener("keydown", e => {
-      const key = e.key.toUpperCase();
-      if (key.length === 1 && /[A-Z ]/.test(key)) {
-        e.preventDefault();
-        if (mode === "roman") {
-          output.innerText += key;
-        } else {
-          output.innerText += cipher[key] || "";
-        }
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        output.innerText += " || ";
-      } else if (e.key === "Backspace") {
-        e.preventDefault();
-        output.innerText = output.innerText.slice(0, -1);
-      }
-    });
+    function printOutput() {
+      const win = window.open('', '', 'width=800,height=600');
+      win.document.write(`<pre id="printableContent">${output.textContent}</pre>`);
+      win.print();
+    }
 
-    updateKeyboard();
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+    }
+
+    createKeyboard();
   </script>
-
 </body>
 </html>
