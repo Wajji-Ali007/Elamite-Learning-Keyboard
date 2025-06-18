@@ -6,13 +6,16 @@
   <title>Elamite Keyboard</title>
   <style>
     :root {
-      --bg-color-light: rgba(255, 100, 100, 0.1);
+      --bg-color-light: rgba(255, 230, 230, 0.8);
       --bg-color-dark: rgba(180, 0, 0, 0.2);
       --key-color-light: rgba(255, 255, 255, 0.6);
       --key-color-dark: rgba(255, 255, 255, 0.15);
-      --key-text: #fff;
+      --key-text-dark: #fff;
+      --key-text-light: #000;
       --shadow-dark: rgba(255, 0, 0, 0.4);
       --shadow-light: rgba(255, 0, 0, 0.2);
+      --highlight-light: #ffaaaa;
+      --highlight-dark: #cc0000;
     }
 
     body {
@@ -20,7 +23,7 @@
       padding: 2rem;
       font-family: 'Segoe UI', sans-serif;
       background: var(--bg-color-dark);
-      color: var(--key-text);
+      color: var(--key-text-dark);
       transition: background 0.5s ease;
       display: flex;
       flex-direction: column;
@@ -30,14 +33,14 @@
 
     body.light {
       background: var(--bg-color-light);
-      color: #000;
+      color: var(--key-text-light);
     }
 
     h1 {
       margin-bottom: 1rem;
       font-size: 2.5rem;
       text-align: center;
-      background: linear-gradient(90deg, #ff6666, #fff);
+      background: linear-gradient(90deg, var(--highlight-dark), #fff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: shine 2s infinite linear;
@@ -45,14 +48,14 @@
 
     @keyframes shine {
       0% { text-shadow: 0 0 5px #fff; }
-      50% { text-shadow: 0 0 20px #ffaaaa; }
+      50% { text-shadow: 0 0 20px var(--highlight-light); }
       100% { text-shadow: 0 0 5px #fff; }
     }
 
     #output {
       font-size: 2rem;
       background: var(--key-color-dark);
-      border: 2px solid #ffaaaa;
+      border: 2px solid var(--highlight-light);
       border-radius: 8px;
       padding: 1rem;
       min-height: 100px;
@@ -62,12 +65,11 @@
       word-wrap: break-word;
       white-space: pre-wrap;
       color: #000;
-      background-color: #fff;
     }
 
-    body:not(.light) #output {
+    body.light #output {
+      background: var(--key-color-light);
       color: #000;
-      background-color: #fff;
     }
 
     .control-buttons {
@@ -81,22 +83,22 @@
     button {
       padding: 0.6rem 1rem;
       font-size: 1rem;
-      border: 2px solid #ff6666;
+      border: 2px solid var(--highlight-dark);
       border-radius: 6px;
       cursor: pointer;
       background: rgba(255,255,255,0.1);
-      color: #fff;
+      color: var(--key-text-dark);
       transition: background 0.3s, transform 0.2s;
     }
 
     body.light button {
-      color: #000;
+      color: var(--key-text-light);
       background: rgba(255,255,255,0.5);
-      border-color: #ffaaaa;
+      border-color: var(--highlight-light);
     }
 
     button:hover {
-      background: #ff6666;
+      background: var(--highlight-dark);
       color: #fff;
     }
 
@@ -118,7 +120,7 @@
       border: none;
       border-radius: 6px;
       background-color: var(--key-color-dark);
-      color: var(--key-text);
+      color: var(--key-text-dark);
       cursor: pointer;
       text-align: center;
       font-weight: bold;
@@ -127,17 +129,17 @@
 
     body.light .key {
       background-color: var(--key-color-light);
-      color: #000;
+      color: var(--key-text-light);
     }
 
     .key:hover {
-      background-color: #ffaaaa;
+      background-color: var(--highlight-light);
     }
 
     .key span {
       display: block;
       font-size: 1.6rem;
-      color: #ff6666;
+      color: var(--highlight-dark);
     }
 
     .note {
@@ -171,60 +173,80 @@
 </head>
 <body>
   <h1>Elamite Keyboard</h1>
-  <div id="output"></div>
+  <div id="output" contenteditable="true"></div>
   <div class="control-buttons">
-    <button onclick="switchLanguage('roman')">Roman</button>
-    <button onclick="switchLanguage('mix')">Roman + Elamite</button>
+    <button onclick="switchLanguage('english')">English</button>
+    <button onclick="switchLanguage('mix')">Mix</button>
     <button onclick="switchLanguage('elamite')">Elamite</button>
-    <button onclick="toggleTheme()">🌗 Theme</button>
-    <button onclick="clearOutput()">🗑️ Clear</button>
-    <button onclick="printOutput()">🖨️ Print</button>
+    <button onclick="clearOutput()">Clear</button>
+    <button onclick="printOutput()">Print</button>
+    <button onclick="toggleTheme()">Toggle Theme</button>
   </div>
   <div id="keyboard"></div>
   <div class="note">
-    Type your Roman Urdu or Elamite script using the virtual keyboard or your physical keyboard. Use <code>Space</code> for | and <code>Enter</code> for ||
+    Note: Press keys on the keyboard or click with mouse to type. Use "|" for space and "||" for new line.
   </div>
-
   <script>
-    const elamiteMap = {
-      a: '𒀀', b: '𒁀', c: '𒆠', d: '𒁲', e: '𒂊', f: '𒈬', g: '𒐖', h: '𒄩', i: '𒅖', j: '𒃻',
-      k: '𒅗', l: '𒇻', m: '𒈠', n: '𒉡', o: '𒍥', p: '𒉺', q: '𒆤', r: '𒊑', s: '𒊬', t: '𒋾',
-      u: '𒌋', v: '𒅆', w: '𒉿', x: '𒐊', y: '𒅀', z: '𒊻'
-    };
-
-    let currentLanguage = 'roman';
-
     const output = document.getElementById('output');
     const keyboard = document.getElementById('keyboard');
-    const letters = 'abcdefghijklmnopqrstuvwxyz';
+    const elamiteMap = [
+      "𒀀","𒁀","𒆠","𒁲","𒂊","𒈬","𒐖","𒄩","𒅖","𒃻",
+      "𒅗","𒇻","𒈠","𒉡","𒍥","𒉺","𒆤","𒊑","𒊬","𒋾",
+      "𒌋","𒅆","𒉿","𒐊","𒅀","𒊻"
+    ];
+    let currentLanguage = 'elamite';
 
     function createKeyboard() {
       keyboard.innerHTML = '';
-      for (let char of letters) {
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      characters.forEach((char, i) => {
         const key = document.createElement('button');
         key.className = 'key';
-        let label = char;
-        if (currentLanguage === 'mix') {
-          key.innerHTML = `<span>${elamiteMap[char]}</span>${char}`;
-        } else if (currentLanguage === 'elamite') {
-          key.innerHTML = `<span>${elamiteMap[char]}</span>`;
-        } else {
-          key.innerHTML = `<span>${char}</span>`;
-        }
-        key.onclick = () => {
-          const value =
-            currentLanguage === 'roman' ? char :
-            currentLanguage === 'mix' ? `${char}(${elamiteMap[char]})` :
-            elamiteMap[char];
-          output.textContent += value + ' ';
-        };
+        let displayChar = char;
+        if (currentLanguage === 'elamite') displayChar = elamiteMap[i];
+        else if (currentLanguage === 'mix') displayChar = elamiteMap[i] + ' / ' + char;
+        else displayChar = char;
+
+        key.innerHTML = `<span>${displayChar}</span>`;
+        key.onclick = () => typeCharacter(char);
         keyboard.appendChild(key);
-      }
+      });
+
+      ['|','||','←'].forEach(symbol => {
+        const key = document.createElement('button');
+        key.className = 'key';
+        key.textContent = symbol;
+        key.onclick = () => typeCharacter(symbol);
+        keyboard.appendChild(key);
+      });
     }
 
-    function switchLanguage(lang) {
-      currentLanguage = lang;
-      createKeyboard();
+    function typeCharacter(char) {
+      if (char === '←') {
+        output.textContent = output.textContent.trimEnd().slice(0, -1);
+        return;
+      }
+      if (char === '||') {
+        output.textContent += '||';
+        return;
+      }
+      if (char === '|') {
+        output.textContent += '|';
+        return;
+      }
+
+      const index = char.charCodeAt(0) - 65;
+      if (/[A-Z]/.test(char)) {
+        if (currentLanguage === 'elamite') {
+          output.textContent += elamiteMap[index];
+        } else if (currentLanguage === 'mix') {
+          output.textContent += elamiteMap[index] + '(' + char + ')';
+        } else {
+          output.textContent += char;
+        }
+      } else {
+        output.textContent += char;
+      }
     }
 
     function clearOutput() {
@@ -232,9 +254,14 @@
     }
 
     function printOutput() {
-      const win = window.open('', '', 'width=800,height=600');
-      win.document.write(`<pre id="printableContent">${output.textContent}</pre>`);
-      win.print();
+      const w = window.open();
+      w.document.write('<pre id="printableContent">' + output.textContent + '</pre>');
+      w.print();
+    }
+
+    function switchLanguage(lang) {
+      currentLanguage = lang;
+      createKeyboard();
     }
 
     function toggleTheme() {
@@ -242,24 +269,29 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.key.length === 1 && /[a-z]/i.test(e.key)) {
-        const char = e.key.toLowerCase();
-        const value =
-          currentLanguage === 'roman' ? char :
-          currentLanguage === 'mix' ? `${char}(${elamiteMap[char]})` :
-          elamiteMap[char];
-        output.textContent += value + ' ';
-      } else if (e.key === ' ') {
+      const key = e.key.toUpperCase();
+      if (/^[A-Z]$/.test(key)) {
         e.preventDefault();
-        output.textContent += '|';
-      } else if (e.key === 'Enter') {
-        output.textContent += '||\n';
-      } else if (e.key === 'Backspace') {
-        output.textContent = output.textContent.trimEnd().slice(0, -1);
+        typeCharacter(key);
+      } else if (key === ' ') {
+        e.preventDefault();
+        typeCharacter('|');
+      } else if (key === 'ENTER') {
+        e.preventDefault();
+        typeCharacter('||');
+      } else if (key === 'BACKSPACE') {
+        e.preventDefault();
+        typeCharacter('←');
       }
     });
 
     createKeyboard();
   </script>
+  <h3>Made By Wajahat Ali For His Hidden Book Alfaz E Dil</h3>
+  <style>
+    h3{
+      color: #333;
+    }
+  </style>
 </body>
 </html>
