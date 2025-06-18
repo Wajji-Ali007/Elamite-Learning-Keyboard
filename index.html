@@ -22,7 +22,7 @@
       color: #ffd700;
     }
 
-    #modeToggle, #printBtn {
+    .modeBtn, #printBtn {
       margin: 0.5rem;
       padding: 0.5rem 1rem;
       background: #333;
@@ -30,6 +30,10 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
+    }
+
+    .modeBtn.active {
+      background: #555;
     }
 
     #output {
@@ -103,7 +107,9 @@
 
   <h1>Elamite Keyboard</h1>
   <div>
-    <button id="modeToggle">Switch to English Mode</button>
+    <button class="modeBtn active" data-mode="mix">Mix</button>
+    <button class="modeBtn" data-mode="roman">Roman</button>
+    <button class="modeBtn" data-mode="elamite">Elamite</button>
     <button id="printBtn">🖨️ Print</button>
   </div>
   <div id="output" contenteditable="true"></div>
@@ -128,22 +134,48 @@
       Y: "𒅀", Z: "𒊻", " ": " | "
     };
 
-    let elamiteMode = true;
+    let mode = "mix";
 
     const output = document.getElementById("output");
     const keyboard = document.getElementById("keyboard");
-    const modeToggle = document.getElementById("modeToggle");
     const printBtn = document.getElementById("printBtn");
     const printableContent = document.getElementById("printableContent");
+    const modeButtons = document.querySelectorAll(".modeBtn");
+
+    modeButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        mode = btn.dataset.mode;
+        modeButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        updateKeyboard();
+      });
+    });
 
     function updateKeyboard() {
       keyboard.innerHTML = "";
-      const keys = elamiteMode ? Object.keys(cipher) : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ '.split("");
+      let keys = Object.keys(cipher);
+
       keys.forEach(letter => {
         const btn = document.createElement("button");
         btn.className = "key";
-        btn.innerHTML = `${letter}<br><span style="font-size:1.4rem">${elamiteMode ? cipher[letter] : letter}</span>`;
-        btn.onclick = () => output.innerText += elamiteMode ? cipher[letter] : letter;
+
+        let display = "";
+        if (mode === "roman") {
+          display = letter;
+        } else if (mode === "mix") {
+          display = `${letter}<br><span style="font-size:1.4rem">${cipher[letter]}</span>`;
+        } else if (mode === "elamite") {
+          display = `<span style="font-size:1.4rem">${cipher[letter]}</span>`;
+        }
+
+        btn.innerHTML = display;
+        btn.onclick = () => {
+          if (mode === "roman") {
+            output.innerText += letter;
+          } else {
+            output.innerText += cipher[letter] || "";
+          }
+        };
         keyboard.appendChild(btn);
       });
 
@@ -168,12 +200,6 @@
       keyboard.appendChild(clearBtn);
     }
 
-    modeToggle.onclick = () => {
-      elamiteMode = !elamiteMode;
-      modeToggle.innerText = elamiteMode ? "Switch to English Mode" : "Switch to Elamite Mode";
-      updateKeyboard();
-    };
-
     printBtn.onclick = () => {
       printableContent.innerText = output.innerText;
       printableContent.style.display = 'block';
@@ -185,7 +211,11 @@
       const key = e.key.toUpperCase();
       if (key.length === 1 && /[A-Z ]/.test(key)) {
         e.preventDefault();
-        output.innerText += elamiteMode ? (cipher[key] || "") : key;
+        if (mode === "roman") {
+          output.innerText += key;
+        } else {
+          output.innerText += cipher[key] || "";
+        }
       } else if (e.key === "Enter") {
         e.preventDefault();
         output.innerText += " || ";
